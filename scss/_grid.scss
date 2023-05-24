@@ -1,0 +1,120 @@
+@use "sass:math";
+
+// vars
+$cols: 12;
+$gutter: 20px;
+$device-l: 1200px;
+$device-m: 760px;
+$device-s: 480px;
+
+// box sizing
+*, *::after, *::before {
+  box-sizing: border-box;
+}
+
+// media querie mixin
+@mixin d($size) {
+  @if $size == l {
+    @media screen and (min-width: #{$device-l}) {
+      @content;
+    }
+  } @else if $size == m {
+    @media screen and (min-width: #{$device-m}) and (max-width: #{$device-l - 1}) {
+      @content;
+    }
+  } @else if $size == s {
+    @media screen and (max-width: #{$device-m - 1}) {
+      @content;
+    }
+  }
+}
+
+// creating grid
+@function grid($col, $offset: false) {
+  $width: math.div($col, $cols) * 100 + "%";
+  $result: calc(#{$width} - #{$gutter});
+  @if $offset == true {
+    $gutter: math.div($gutter, 2);
+    $result: calc(#{$width} + #{$gutter});
+  }
+  @return $result;
+}
+
+@for $i from 1 through $cols {
+  .grid-#{$i} {
+    width: grid($i);
+  }
+}
+
+// grid structure mixin
+@mixin grid-structure {
+  float: left;
+  min-height: 1px;
+  margin-left: math.div($gutter, 2);
+  margin-right: math.div($gutter, 2);
+  @include d(s) {
+    width: 100%;
+    float: none;
+    margin-left: 0px;
+    margin-right: 0px;
+  }
+}
+
+[class^="grid-"] {
+  @include grid-structure;
+}
+
+// creating offset classes
+@for $i from 1 through $cols {
+  .offset-#{$i} {
+    margin-left: grid($i, true);
+    @extend %offset;
+  }
+}
+
+@include d(s) {
+  %offset {
+    margin-left: 0px;
+  }
+}
+
+// clearfix mixin
+@mixin clearfix {
+  &::after, &::before {
+    content: '';
+    display: table;
+    clear: both;
+  }
+}
+
+@mixin container {
+  max-width: $device-l;
+  margin: 0px auto;
+  position: relative;
+  @include d(m) {
+    max-width: $device-m;
+  }
+  @include d(s) {
+    max-width: $device-s;
+  }
+  @include clearfix;
+}
+
+.container {
+  @include container;
+}
+
+@mixin row {
+  position: relative;
+  margin-left: "-" + math.div($gutter, 2);
+  margin-right: "-" + math.div($gutter, 2);
+  @include d(s) {
+    margin-left: 0px;
+    margin-right: 0px;
+  }
+  @include clearfix;
+}
+
+.row {
+  @include row;
+}
